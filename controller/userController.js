@@ -93,12 +93,16 @@ export const resetPassword = catchAsyncErrors(async (req, res, next) => {
 });
 
 export const getUserDetails = catchAsyncErrors(async (req, res, next) => {
-    const user = await userModels.getUserById(req.user.rows[0].id);
+    try{
+        const user = await userModels.getUserById(req.user.id);
 
-    res.status(200).json({
-        success: true,
-        user,
-    });
+        res.status(200).json({
+            success: true,
+            user,
+        });
+    } catch(err){
+        console.error(err)
+    }
 });
 
 export const updateUserPassword = catchAsyncErrors(async (req, res, next) => {

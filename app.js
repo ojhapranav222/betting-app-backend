@@ -8,13 +8,15 @@ import wallet from "./routes/walletRoutes.js";
 import deposit from "./routes/depositRoutes.js";
 import withdrawal from "./routes/withdrawalRoutes.js";
 import errorMiddleware from "./middleware/error.js"
+import dotenv from "dotenv"
 import cors from "cors";
 
 const app = express();
+dotenv.config()
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors({ 
-  origin: 'http://localhost:5173',
+  origin: process.env.HOST || 'http://localhost:5173',
   credentials: true
 })); 
 
