@@ -96,3 +96,12 @@ export async function getAllUsers (){
         console.error(err);
     }
 }
+
+export async function changeRole(role, id){
+    try{
+        const response = await db.query(`UPDATE users SET role = $1 WHERE id = $2 RETURNING *`, [role, id]);
+        return response.rows[0];
+    } catch(err){
+        console.error(err)
+    }
+}

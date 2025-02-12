@@ -138,3 +138,38 @@ export const getAllUsers = catchAsyncErrors(async(req, res, next) => {
         console.error(err)
     }
 })
+
+export const getUser = catchAsyncErrors(async (req, res, next) => {
+    try{
+        const user = await userModels.getUserById(req.params.id);
+        if (!user){
+            return next(new ErrorHandler("User not found", 404))
+        }
+        res.status(200).json({
+            success: true,
+            user
+        })
+    } catch(err){
+        console.error(err)
+    }
+})
+
+export const updateUserRole = catchAsyncErrors(async (req, res, next) => {
+    try{
+        const user = await userModels.getUserById(req.params.id);
+        if (!user){
+            return next(new ErrorHandler("User not found", 404))
+        }
+        const role = req.body.role;
+        if (!role){
+            return next(new ErrorHandler("Please add a role", 400))
+        }
+        const response = await userModels.changeRole(role, user.id);
+        res.status(200).json({
+            success: true,
+            response
+        })
+    } catch(err){
+        console.error(err)
+    }
+})
