@@ -89,6 +89,10 @@ export async function updateUserPassword (newPassword, userId) {
 }
 
 export async function getAllUsers (){
+    try{
     const users = await db.query(`SELECT * FROM users`);
     return users.rows;
+    } catch(err){
+        console.error(err);
+    }
 }

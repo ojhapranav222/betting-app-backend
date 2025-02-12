@@ -128,9 +128,13 @@ export const updateUserPassword = catchAsyncErrors(async (req, res, next) => {
 })
 
 export const getAllUsers = catchAsyncErrors(async(req, res, next) => {
-    const users = await userModels.getAllUsers();
-    res.status(200).json({
-        success: true,
-        users
-    })
+    try{
+        const users = await userModels.getAllUsers();
+        res.status(200).json({
+            success: true,
+            users
+        })
+    } catch(err){
+        console.error(err)
+    }
 })
