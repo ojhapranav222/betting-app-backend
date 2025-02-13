@@ -12,7 +12,7 @@ export const newDeposit = catchAsyncErrors(async (req, res, next) => {
             return next(new ErrorHandler("File upload error", 400));
         }
 
-        const userId = req.user.rows[0].id;
+        const userId = req.user.id;
         let { amount } = fields;
         amount = parseInt(amount, 10);
 
@@ -66,7 +66,7 @@ export const getAllDeposits = catchAsyncErrors(async (req, res, next) => {
 });
 
 export const getMyDeposits = catchAsyncErrors(async (req, res, next) => {
-    const userId = req.user.rows[0].id;
+    const userId = req.user.id;
     if (!userId) {
         return next(new ErrorHandler("User not found", 404));
     }
@@ -76,4 +76,27 @@ export const getMyDeposits = catchAsyncErrors(async (req, res, next) => {
         success: true,
         deposits,
     })
+})
+
+export const getSingleDeposit = catchAsyncErrors(async (req, res, next) => {
+    try {
+        const userId = req.params.id;
+
+        // Ensure userId is valid
+        if (!userId || isNaN(userId)) {
+            return next(new ErrorHandler("Invalid or missing user ID", 400));
+        }
+
+        // Fetch deposits for the given user
+        const deposits = await depositModel.getDepositsByUserId(userId);
+
+        res.status(200).json({
+            success: true,
+            deposits
+        });
+
+    } catch (err) {
+        console.error("Error fetching deposits:", err);
+        return next(new ErrorHandler("Internal Server Error", 500));
+    }
 })

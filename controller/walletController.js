@@ -4,7 +4,7 @@ import ErrorHandler from "../utils/errorHandler.js";
 import { db } from "../database.js";
 
 export const addBonus = catchAsyncErrors(async (req, res, next) => {
-    const { userId, amount } = req.body;
+    let { userId, amount } = req.body;
 
     if (!userId || !amount || amount <= 0) {
         return next(new ErrorHandler("Invalid user ID or amount", 400));
@@ -14,7 +14,7 @@ export const addBonus = catchAsyncErrors(async (req, res, next) => {
         await db.query("BEGIN");
 
         // Update user balance
-        const updatedBalance = await walletModels.updateUserBalance(userId, amount);
+        const updatedBalance = await walletModels.updateUserBonus(userId, amount);
 
         // Log the transaction under "bonus"
         await walletModels.logTransaction(userId, amount, "bonus");
@@ -71,3 +71,15 @@ export const deductFine = catchAsyncErrors(async (req, res, next) => {
         return next(new ErrorHandler("Error deducting fine", 500));
     }
 });
+
+export const getAllTransactions = catchAsyncErrors(async (req, res, next) => {
+    try{
+        const transactions = await walletModels.getAllTransactions();
+        res.status(200).json({
+            success: true,
+            transactions: transactions
+            });
+    } catch(err){
+        console.error(err)
+    }
+})

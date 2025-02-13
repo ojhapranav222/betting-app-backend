@@ -1,10 +1,11 @@
 import catchAsyncErrors from "../middleware/catchAsyncError.js";
 import * as withdrawalModel from "../models/withdrawalModel.js";
 import ErrorHandler from "../utils/errorHandler.js";
+import { db } from "../database.js";
 
 // Create a new withdrawal request
 export const requestWithdrawal = catchAsyncErrors(async (req, res, next) => {
-    const userId = req.user.rows[0].id;
+    const userId = req.user.id;
     const { amount } = req.body;
 
     // Validate amount
@@ -82,4 +83,53 @@ export const cancelWithdrawal = catchAsyncErrors(async (req, res, next) => {
         message: "Withdrawal request canceled successfully",
         withdrawal: canceledWithdrawal,
     });
+});
+
+export const getAllWithdrawals = catchAsyncErrors(async (req, res, next) => {
+    try {
+        const query = `SELECT w.*, u.name AS user_name 
+            FROM withdrawals w
+            JOIN users u ON w.user_id = u.id
+            ORDER BY w.created_at DESC`;
+        const result = await db.query(query);
+        res.status(200).json({ success: true, withdrawals: result.rows });
+    } catch (error) {
+        console.error(error)
+        next(new ErrorHandler("Failed to fetch withdrawals", 500));
+    }
+});
+
+// ✅ Get withdrawals of a specific user
+export const getUserWithdrawals = catchAsyncErrors(async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const query = `SELECT * FROM withdrawals WHERE user_id = $1 ORDER BY created_at DESC`;
+        const result = await db.query(query, [id]);
+
+        if (result.rows.length === 0) {
+            return next(new ErrorHandler("No withdrawals found for this user", 404));
+        }
+
+        res.status(200).json({ success: true, withdrawals: result.rows });
+    } catch (error) {
+        console.error(error)
+        next(new ErrorHandler("Failed to fetch user withdrawals", 500));
+    }
+});
+
+// ✅ Get logged-in user's withdrawals
+export const getMyWithdrawals = catchAsyncErrors(async (req, res, next) => {
+    try {
+        const userId = req.user.id; // Assuming user ID is stored in `req.user`
+        const query = `SELECT * FROM withdrawals WHERE user_id = $1 ORDER BY created_at DESC`;
+        const result = await db.query(query, [userId]);
+
+        if (result.rows.length === 0) {
+            return next(new ErrorHandler("No withdrawals found", 404));
+        }
+
+        res.status(200).json({ success: true, withdrawals: result.rows });
+    } catch (error) {
+        next(new ErrorHandler("Failed to fetch withdrawals", 500));
+    }
 });

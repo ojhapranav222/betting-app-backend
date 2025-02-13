@@ -52,3 +52,27 @@ export async function updateUserFine(userId, amount) {
         throw err;
     }
 }
+
+export async function getAllTransactions(){
+    try{
+        const query = `
+        SELECT 
+            wallet_transactions.id,
+            wallet_transactions.user_id,
+            wallet_transactions.transaction_type,
+            wallet_transactions.amount,
+            wallet_transactions.status,
+            wallet_transactions.bet_id,
+            wallet_transactions.created_at,
+            users.name AS user_name  -- Fetch user name from users table
+        FROM wallet_transactions
+        JOIN users ON wallet_transactions.user_id = users.id
+        ORDER BY wallet_transactions.created_at DESC;
+    `;
+    const result = await db.query(query);
+    return result.rows;
+    } catch(err){
+        console.error(err)
+        throw err;
+    }
+}

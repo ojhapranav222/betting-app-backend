@@ -8,6 +8,7 @@ export const addGame = catchAsyncErrors(async (req, res, next) => {
     try{
         const game = await gameModels.registerGame(req.body);
         if (!game) {
+            console.log(game)
             return res.status(500).json({ 
                 success: false,
                 message: "Could not add game" 
@@ -159,5 +160,30 @@ export const declareWinner = catchAsyncErrors(async (req, res, next) => {
         await db.query("ROLLBACK");
         console.error(err);
         return next(new ErrorHandler("Error declaring winner", 500));
+    }
+});
+
+export const toggleBet = catchAsyncErrors(async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        // Fetch current bet status
+        const { rows } = await db.query(`SELECT bet FROM games WHERE id = $1`, [id]);
+        if (rows.length === 0) {
+            return res.status(404).json({ success: false, message: "Game not found" });
+        }
+
+        const newBetStatus = !rows[0].bet; // Toggle the betting status
+
+        // Update the bet status in the database
+        await db.query(`UPDATE games SET bet = $1 WHERE id = $2`, [newBetStatus, id]);
+
+        res.status(200).json({ 
+            success: true, 
+            message: `Betting is now ${newBetStatus ? "enabled" : "disabled"}` 
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: "Internal server error" });
     }
 });

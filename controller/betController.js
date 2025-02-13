@@ -6,7 +6,7 @@ import * as wallet from "../models/walletModels.js";
 
 export const createBet = catchAsyncErrors(async (req, res, next) => {
     const { gameId, team, amount } = req.body;
-    const userId = req.user.rows[0].id;
+    const userId = req.user.id;
 
     if (!gameId || !team || !amount) {
         return next(new ErrorHandler("Please provide all required fields", 400));
@@ -59,10 +59,23 @@ export const createBet = catchAsyncErrors(async (req, res, next) => {
 });
 
 export const getMyBets = catchAsyncErrors(async (req, res, next) => {
-    const userId = req.user.rows[0].id;
-    const bets = await betModels.getBetByUserId(userId);
+    const userId = req.user.id;
+    const bets = await db.query(`SELECT 
+            bets.*, 
+            users.name AS user_name, 
+            games.match_name, 
+            games.team_a, 
+            games.team_b, 
+            CASE 
+                WHEN bets.team_choice = 'team_a' THEN games.team_a 
+                WHEN bets.team_choice = 'team_b' THEN games.team_b 
+            END AS team_name
+        FROM bets
+        JOIN users ON bets.user_id = users.id
+        JOIN games ON bets.game_id = games.id
+        WHERE bets.user_id = $1`, [userId])
 
-    if (bets.length === 0) {
+    if (bets.rows.length === 0) {
         return res.status(404).json({
             success: false,
             message: "No bets found"
@@ -72,7 +85,7 @@ export const getMyBets = catchAsyncErrors(async (req, res, next) => {
     return res.status(200).json({
         success: true,
         message: "Bets retrieved successfully",
-        bets
+        bets: bets.rows
     })
 })
 
@@ -88,7 +101,6 @@ export const cancelBet = catchAsyncErrors(async (req, res, next) => {
     res.status(200).json({ success: true, message: result.message });
 });
 
-//admin function
 export const getAllBets = catchAsyncErrors(async (req, res, next) => {
     const bets = await betModels.getAllBets();
     if (bets.length === 0) {
