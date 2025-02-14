@@ -120,7 +120,7 @@ export const getUserWithdrawals = catchAsyncErrors(async (req, res, next) => {
 // ✅ Get logged-in user's withdrawals
 export const getMyWithdrawals = catchAsyncErrors(async (req, res, next) => {
     try {
-        const userId = req.user.id; // Assuming user ID is stored in `req.user`
+        const userId = req.user.id;
         const query = `SELECT * FROM withdrawals WHERE user_id = $1 ORDER BY created_at DESC`;
         const result = await db.query(query, [userId]);
 
@@ -130,6 +130,10 @@ export const getMyWithdrawals = catchAsyncErrors(async (req, res, next) => {
 
         res.status(200).json({ success: true, withdrawals: result.rows });
     } catch (error) {
-        next(new ErrorHandler("Failed to fetch withdrawals", 500));
+        res.status(500).json({
+            success: false,
+            message: "Failed to fetch user withdrawals",
+            error
+        })
     }
 });
