@@ -99,7 +99,7 @@ export const declareWinner = catchAsyncErrors(async (req, res, next) => {
         await db.query("BEGIN");
 
         // Update the winner in the games table
-        await db.query(`UPDATE games SET winner = $1 WHERE id = $2`, [winner, gameId]);
+        await db.query(`UPDATE games SET winner = $1, bet = false WHERE id = $2`, [winner, gameId]);
 
         // Fetch all bets placed on the winning team
         const bets = await db.query(
@@ -107,6 +107,16 @@ export const declareWinner = catchAsyncErrors(async (req, res, next) => {
              WHERE game_id = $1 AND team_choice = $2 AND status = 'approved'`,
             [gameId, winner]
         );
+
+        const losingTeam = winner === "team_a" ? "team_b" : winner === "team_b" ? "team_a" : null;
+
+        if (losingTeam) {
+            await db.query(
+                `UPDATE bets SET status = 'lost' 
+                 WHERE game_id = $1 AND team_choice = $2 AND status = 'approved'`,
+                [gameId, losingTeam]
+            );
+        }
 
         if (bets.rows.length === 0) {
             await db.query("COMMIT");

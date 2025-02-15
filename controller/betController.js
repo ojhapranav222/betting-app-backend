@@ -66,6 +66,9 @@ export const getMyBets = catchAsyncErrors(async (req, res, next) => {
             games.match_name, 
             games.team_a, 
             games.team_b, 
+            games.winner,
+            games.end_time,
+            games.bet,
             CASE 
                 WHEN bets.team_choice = 'team_a' THEN games.team_a 
                 WHEN bets.team_choice = 'team_b' THEN games.team_b 
