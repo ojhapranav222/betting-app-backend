@@ -3,6 +3,7 @@ import catchAsyncErrors from "../middleware/catchAsyncError.js";
 import * as depositModel from "../models/depositModel.js";
 import formidable from "formidable";
 import ErrorHandler from "../utils/errorHandler.js";
+import { db } from "../database.js";
 
 export const newDeposit = catchAsyncErrors(async (req, res, next) => {
     const form = formidable({ multiples: false });
@@ -42,8 +43,7 @@ export const newDeposit = catchAsyncErrors(async (req, res, next) => {
         const newDeposit = await depositModel.createDeposit({
             user_id: userId,
             amount,
-            screenshot: screenshotUrl,
-            status: "approved",
+            screenshot: screenshotUrl
         });
 
         // Update user balance in users table
@@ -100,3 +100,31 @@ export const getSingleDeposit = catchAsyncErrors(async (req, res, next) => {
         return next(new ErrorHandler("Internal Server Error", 500));
     }
 })
+
+export const updateDepositStatus = catchAsyncErrors(async (req, res, next) => {
+    const { depositId, status } = req.body;
+
+    if (!depositId || !status) {
+        return next(new ErrorHandler("Deposit ID and status are required", 400));
+    }
+
+    // Only allow valid statuses
+    const allowedStatuses = ["approved", "rejected"];
+    if (!allowedStatuses.includes(status)) {
+        return next(new ErrorHandler("Invalid deposit status", 400));
+    }
+
+    // Check if deposit exists
+    const deposit = await db.query("SELECT * FROM deposits WHERE id = $1", [depositId]);
+    if (deposit.rows.length === 0) {
+        return next(new ErrorHandler("Deposit not found", 404));
+    }
+
+    // Update the deposit status
+    await db.query("UPDATE deposits SET status = $1 WHERE id = $2", [status, depositId]);
+
+    res.status(200).json({
+        success: true,
+        message: `Deposit status updated to ${status}`,
+    });
+});

@@ -1,15 +1,19 @@
 import {db} from "../database.js";
 
 // Create a new deposit entry
-export async function createDeposit ({ user_id, amount, screenshot, status }) {
+export async function createDeposit ({ user_id, amount, screenshot }) {
+    try{
     const query = `
-        INSERT INTO deposits (user_id, amount, screenshot, status, created_at)
-        VALUES ($1, $2, $3, $4, NOW()) RETURNING *;
+        INSERT INTO deposits (user_id, amount, screenshot, created_at)
+        VALUES ($1, $2, $3, NOW()) RETURNING *;
     `;
-    const values = [user_id, amount, screenshot, status];
+    const values = [user_id, amount, screenshot];
 
     const { rows } = await db.query(query, values);
-    return rows[0]; // Return the inserted deposit record
+    return rows[0]; 
+    } catch (error) {
+        console.error(error);
+    }
 };
 
 // Fetch all deposit transactions (for admin)

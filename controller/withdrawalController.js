@@ -130,10 +130,6 @@ export const getMyWithdrawals = catchAsyncErrors(async (req, res, next) => {
 
         res.status(200).json({ success: true, withdrawals: result.rows });
     } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: "Failed to fetch user withdrawals",
-            error
-        })
+        next(new ErrorHandler("Failed to fetch withdrawals", 500));
     }
 });

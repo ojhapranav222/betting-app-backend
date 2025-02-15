@@ -1,26 +1,27 @@
 import { db } from "../database.js";
 
-export async function registerGame(game){
-    let {matchName, teamA, teamB, oddsTeamA, oddsTeamB, startTime, isLive, additionalNotes} = game;
-    try{
-        let result = null;
-        if (startTime){
-            isLive = false;
-            result = await db.query(`INSERT INTO games (match_name, team_a, team_b, odds_team_a, odds_team_b, start_time, is_live, additional_notes) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`, [matchName, teamA, teamB, oddsTeamA, oddsTeamB, startTime, isLive, additionalNotes]);
-        } else {
-            isLive = true;
-            result = await db.query(`INSERT INTO games (match_name, team_a, team_b, odds_team_a, odds_team_b, is_live, additional_notes) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`, [matchName, teamA, teamB, oddsTeamA, oddsTeamB, isLive, additionalNotes]);
-        }
+export async function registerGame(game) {
+    const { matchName, teamA, teamB, endTime, additionalNotes } = game;
 
+    try {
+        const query = `
+            INSERT INTO games (match_name, team_a, team_b, end_time, additional_notes) 
+            VALUES ($1, $2, $3, $4, $5) 
+            RETURNING *`;
+
+        const values = [matchName, teamA, teamB, endTime, additionalNotes];
+
+        const result = await db.query(query, values);
         return result.rows[0];
-    } catch(err){
-        console.error(err)
+
+    } catch (err) {
+        console.error(err);
     }
 }
 
 export async function getAllGames(){
     try{
-        const result = await db.query(`SELECT * FROM games ORDER BY start_time ASC`);
+        const result = await db.query(`SELECT * FROM games ORDER BY end_time DESC`);
         return result.rows;
     } catch(err){
         console.error(err)
