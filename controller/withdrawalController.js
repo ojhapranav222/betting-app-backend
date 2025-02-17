@@ -6,7 +6,7 @@ import { db } from "../database.js";
 // Create a new withdrawal request
 export const requestWithdrawal = catchAsyncErrors(async (req, res, next) => {
     const userId = req.user.id;
-    const { amount } = req.body;
+    const { amount, upiId } = req.body;
 
     // Validate amount
     if (!amount || amount <= 0) {
@@ -21,12 +21,13 @@ export const requestWithdrawal = catchAsyncErrors(async (req, res, next) => {
 
     // Check if user has sufficient balance
     const balance = await withdrawalModel.getUserBalance(userId);
-    if (amount > balance) {
+    if (parseFloat(amount) > parseFloat(balance)) {
         return next(new ErrorHandler("Insufficient balance for withdrawal", 400));
     }
+    
 
     // Create withdrawal request
-    const newWithdrawal = await withdrawalModel.createWithdrawal({ user_id: userId, amount });
+    const newWithdrawal = await withdrawalModel.createWithdrawal({ user_id: userId, upiId, amount });
 
     res.status(201).json({
         success: true,

@@ -1,12 +1,12 @@
 import { db } from "../database.js";
 
 // Create a new withdrawal request
-export async function createWithdrawal({ user_id, amount }) {
+export async function createWithdrawal({ user_id, upiId, amount }) {
     const query = `
-        INSERT INTO withdrawals (user_id, amount, status, created_at)
-        VALUES ($1, $2, 'pending', NOW()) RETURNING *;
+        INSERT INTO withdrawals (user_id, upi_id, amount, status, created_at)
+        VALUES ($1, $2, $3, 'pending', NOW()) RETURNING *;
     `;
-    const values = [user_id, amount];
+    const values = [user_id, upiId, amount];
 
     const { rows } = await db.query(query, values);
     return rows[0]; // Return the inserted withdrawal record
@@ -26,6 +26,7 @@ export async function hasRecentWithdrawal(user_id) {
 export async function getUserBalance(user_id) {
     const query = `SELECT balance FROM users WHERE id = $1;`;
     const { rows } = await db.query(query, [user_id]);
+    console.log(rows[0].balance);
     return rows[0]?.balance || 0;
 }
 
