@@ -49,17 +49,10 @@ export async function getGameById(id){
 
 export async function updateGameById(id, updatedData){
     try{
-        let {matchName, teamA, teamB, oddsTeamA, oddsTeamB, startTime, isLive, additionalNotes} = updatedData
+        let {matchName, teamA, teamB, endTime, additionalNotes} = updatedData
 
-        let result = null
-
-        if (startTime){
-            result = await db.query(`UPDATE games SET match_name = $1, team_a = $2, team_b = $3, odds_team_a = $4, odds_team_b = $5, start_time = $6, is_live = $7, additional_notes = $8
-                WHERE id = $9 RETURNING *;`, [matchName, teamA, teamB, oddsTeamA, oddsTeamB, startTime, isLive, additionalNotes, id]);
-        } else {
-            result = await db.query(`UPDATE games SET match_name = $1, team_a = $2, team_b = $3, odds_team_a = $4, odds_team_b = $5, is_live = $6, additional_notes = $7
-                WHERE id = $8 RETURNING *;`, [matchName, teamA, teamB, oddsTeamA, oddsTeamB, isLive, additionalNotes, id]);
-        }
+        let result = await db.query(`UPDATE games SET match_name = $1, team_a = $2, team_b = $3, end_time = $4, additional_notes = $5
+                WHERE id = $6 RETURNING *;`, [matchName, teamA, teamB, endTime, additionalNotes, id]);
 
         return result.rows[0]
     } catch(err){

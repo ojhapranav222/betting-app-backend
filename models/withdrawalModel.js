@@ -1,12 +1,12 @@
 import { db } from "../database.js";
 
 // Create a new withdrawal request
-export async function createWithdrawal({ user_id, upiId, amount }) {
+export async function createWithdrawal({ user_id, upiId, accountNumber, ifscCode, holderName, bankName, amount }) {
     const query = `
-        INSERT INTO withdrawals (user_id, upi_id, amount, status, created_at)
-        VALUES ($1, $2, $3, 'pending', NOW()) RETURNING *;
+        INSERT INTO withdrawals (user_id, upi_id, account_number, ifsc_code, account_holder_name, bank_name, amount, status, created_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, 'pending', NOW()) RETURNING *;
     `;
-    const values = [user_id, upiId, amount];
+    const values = [user_id, upiId, accountNumber, ifscCode, holderName, bankName, amount];
 
     const { rows } = await db.query(query, values);
     return rows[0]; // Return the inserted withdrawal record

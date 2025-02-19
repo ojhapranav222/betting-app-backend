@@ -69,6 +69,7 @@ export const deleteGamesById = catchAsyncErrors(async (req, res, next) => {
 export const updateGamesById = catchAsyncErrors(async (req, res, next) => {
     try{
         const {id} = req.params;
+        console.log(id, req.body);
         const game = await gameModels.updateGameById(id, req.body);
         if (!game){
             return res.status(404).json({

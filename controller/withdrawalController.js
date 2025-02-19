@@ -6,7 +6,7 @@ import { db } from "../database.js";
 // Create a new withdrawal request
 export const requestWithdrawal = catchAsyncErrors(async (req, res, next) => {
     const userId = req.user.id;
-    const { amount, upiId } = req.body;
+    const { amount, upiId, accountNumber, ifscCode, bankName, holderName } = req.body;
 
     // Validate amount
     if (!amount || amount <= 0) {
@@ -27,7 +27,7 @@ export const requestWithdrawal = catchAsyncErrors(async (req, res, next) => {
     
 
     // Create withdrawal request
-    const newWithdrawal = await withdrawalModel.createWithdrawal({ user_id: userId, upiId, amount });
+    const newWithdrawal = await withdrawalModel.createWithdrawal({ user_id: userId, upiId, accountNumber, ifscCode, bankName, holderName, amount });
 
     res.status(201).json({
         success: true,
