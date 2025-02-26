@@ -20,7 +20,8 @@ export const createBet = catchAsyncErrors(async (req, res, next) => {
     }
 
     const { team_a, team_b } = gameCheck.rows[0];
-
+    console.log(team_a, team_b)
+    const teamName = team === "team_a" ? team_a : team_b
     // Validate the team
     if (team !== "team_a" && team !== "team_b") {
         return next(new ErrorHandler("Invalid team selection! Choose 'team_a' or 'team_b'", 400));
@@ -48,7 +49,7 @@ export const createBet = catchAsyncErrors(async (req, res, next) => {
 
         res.status(201).json({
             success: true,
-            message: `Bet placed successfully on ${team}`,
+            message: `Bet placed successfully on ${teamName}`,
             bet
         });
     } catch (err) {
