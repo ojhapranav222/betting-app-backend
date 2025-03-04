@@ -21,7 +21,7 @@ export async function registerGame(game) {
 
 export async function getAllGames(){
     try{
-        const result = await db.query(`SELECT * FROM games ORDER BY end_time DESC`);
+        const result = await db.query(`SELECT * FROM games ORDER BY created_at DESC`);
         return result.rows;
     } catch(err){
         console.error(err)

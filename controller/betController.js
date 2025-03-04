@@ -77,7 +77,7 @@ export const getMyBets = catchAsyncErrors(async (req, res, next) => {
         FROM bets
         JOIN users ON bets.user_id = users.id
         JOIN games ON bets.game_id = games.id
-        WHERE bets.user_id = $1`, [userId])
+        WHERE bets.user_id = $1 ORDER BY bets.created_at DESC`, [userId])
 
     if (bets.rows.length === 0) {
         return res.status(404).json({

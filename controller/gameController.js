@@ -174,6 +174,54 @@ export const declareWinner = catchAsyncErrors(async (req, res, next) => {
     }
 });
 
+export const cancelMatch = catchAsyncErrors(async (req, res, next) => {
+    const { gameId } = req.body;
+
+    if (!gameId) {
+        return next(new ErrorHandler("Invalid game ID", 400));
+    }
+
+    try {
+        await db.query("BEGIN");
+
+        // Update the games table to set winner as "cancelled"
+        await db.query(`UPDATE games SET winner = 'cancelled', bet = false WHERE id = $1`, [gameId]);
+
+        // Fetch all approved bets for this game
+        const bets = await db.query(
+            `SELECT id, user_id, amount_bet FROM bets WHERE game_id = $1 AND status = 'approved'`,
+            [gameId]
+        );
+
+        if (bets.rows.length > 0) {
+            for (const bet of bets.rows) {
+                const { id: betId, user_id, amount_bet } = bet;
+
+                // Refund the bet amount to the user
+                await db.query(`UPDATE users SET balance = balance + $1 WHERE id = $2`, [amount_bet, user_id]);
+
+                // Mark bet as refunded in bets table
+                await db.query(`UPDATE bets SET status = 'refunded' WHERE id = $1`, [betId]);
+
+                // Log refund transaction
+                await walletModels.logTransaction(user_id, amount_bet, "refund", betId);
+            }
+        }
+
+        await db.query("COMMIT");
+
+        res.status(200).json({
+            success: true,
+            message: `Match cancelled. All bets refunded successfully.`,
+        });
+    } catch (err) {
+        await db.query("ROLLBACK");
+        console.error(err);
+        return next(new ErrorHandler("Error canceling match", 500));
+    }
+});
+
+
 export const toggleBet = catchAsyncErrors(async (req, res) => {
     try {
         const { id } = req.params;

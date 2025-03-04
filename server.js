@@ -17,7 +17,14 @@ const server = app.listen(port, () => {
     console.log(`Server running on port ${port}`);
 })
 
+
 process.on("unhandledRejection", (err) => {
+
+    if (err instanceof AggregateError) {
+        err.errors.forEach((e, index) => {
+            console.error(`Error ${index + 1}:`, e);
+        });
+    }
     console.log(`Error: ${err}`);
     console.log("Shutting down the server");
 
